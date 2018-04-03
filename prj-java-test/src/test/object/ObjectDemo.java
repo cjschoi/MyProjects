@@ -55,6 +55,7 @@ public class ObjectDemo extends Object {
                System.out.println("" + item);
             } catch (InterruptedException ix) {
                System.out.println("Interrupted Exception!");
+               System.out.format("Thread.currentThread() = %s", Thread.currentThread());
             } catch (Exception x) {
                System.out.println("Exception thrown.");
             }

@@ -18,6 +18,6 @@ public class RspHandler {
 			}
 		}
 		
-		System.out.println(new String(this.rsp));
+		System.out.println(new String(this.rsp) + " :: server");
 	}
 }

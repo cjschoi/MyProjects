@@ -186,7 +186,7 @@ public class NioClient implements Runnable {
 	
 		// Finish the connection. If the connection operation failed
 		// this will raise an IOException.
-		try {
+		try {  
 			socketChannel.finishConnect();
 		} catch (IOException e) {
 			// Cancel the channel's registration with our selector
