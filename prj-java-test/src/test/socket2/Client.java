@@ -99,6 +99,7 @@ public class Client {
 						keyChannel.finishConnect();
 						// System.out.println("CONNECTED TO SERVER");
 						key.interestOps(SelectionKey.OP_WRITE);
+						
 					} else if (key.isReadable()) {
 						System.out.println("STARTING READ " + key.interestOps());
 						if (buffer == null) {
@@ -168,22 +169,25 @@ public class Client {
 							throw new IOException("SERVER CLOSED CONNECTION");
 
 						System.out.println("READ DONE");
+						
 					} else if (key.isWritable()) {
+//System.out.println(">>>> client isWritable");						
 						// System.out.println("WRITE START " + key.interestOps());
 						SocketChannel keyChannel = (SocketChannel) key.channel();
-						if (buffer == null)
+						if (buffer == null) {
 							synchronized (this) {
-								try {
+								try {									
 									this.wait();
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								}
 								// System.out.println("XXX SOMETHING TO WRITE!");
 							}
+						}	
 
 						if (buffer.position() == 0) {
 							String header = buffer.limit() + "\n";
-							// System.out.println("SENDING HEADER " + header);
+							//System.out.println("SENDING HEADER " + header);
 							keyChannel.write(ByteBuffer.wrap(header.getBytes()));
 						}
 

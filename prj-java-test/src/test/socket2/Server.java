@@ -77,12 +77,16 @@ public class Server {
 
 					iterator.remove();
 					System.out.println("ACCEPTED CONNECTION");
+					
 				} else if (key.isReadable()) {
 					System.out.println("STARTING READ");
 
 					Integer contentLengh = contentLenths.get(key);
 
 					ByteBuffer buffer = byteBufferStore.get(key);
+if(buffer != null) {					
+	System.out.format("@buffer.toString : |%s|",buffer.toString());
+}
 					if (buffer == null) {
 						buffer = ByteBuffer.allocate(5);
 						byteBufferStore.put(key, buffer);
@@ -143,10 +147,12 @@ public class Server {
 								System.out.println("STARTING WORKER");
 								iterator.remove();
 								executors.submit(new Worker(key, byteBufferStore.remove(key)));
-							} else
+							} else {
 								throw new IOException("CLIENT CLOSED CONNECTION. WHY SHOULD I WORK?");
-						} else if (read < 0)
+							}	
+						} else if (read < 0) {
 							throw new IOException("CLIENT CLOSED CONNECTION");
+						}	
 
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -162,6 +168,7 @@ public class Server {
 						iterator.remove();
 					}
 					System.out.println("READ DONE");
+					
 				} else if (key.isWritable()) {
 
 					ByteBuffer buffer = byteBufferStore.get(key);
