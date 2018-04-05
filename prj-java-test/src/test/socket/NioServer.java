@@ -188,7 +188,7 @@ public class NioServer implements Runnable {
 		InetSocketAddress isa = new InetSocketAddress(this.hostAddress, this.port);
 		serverChannel.socket().bind(isa);
 
-		// Register the server socket channel, indicating an interest in 
+		// Register the server socket channel, indicating an interest in
 		// accepting new connections
 		serverChannel.register(socketSelector, SelectionKey.OP_ACCEPT);
 

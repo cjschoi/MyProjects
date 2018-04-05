@@ -15,7 +15,7 @@ public class ClientThread extends Thread {
 		super(name);
 		this.channel = channel;
 	}
-	
+	  
 	@Override
 	public void run() {
 		try {

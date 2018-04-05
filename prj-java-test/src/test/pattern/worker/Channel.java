@@ -43,8 +43,7 @@ public class Channel {
 		}
 		
 		requestQueue[tail] = request;
-		tail = (tail + 1) % requestQueue.length;
-System.out.println("@tail => "+tail);		
+		tail = (tail + 1) % requestQueue.length;		
 		count++;
 		notifyAll();
 	}
@@ -59,8 +58,7 @@ System.out.println("@tail => "+tail);
 		}
 		
 		Request request = requestQueue[head];
-		head = (head + 1) % requestQueue.length;
-System.out.println("@head => "+head);		
+		head = (head + 1) % requestQueue.length;		
 		count--;
 		notifyAll();
 		return request;

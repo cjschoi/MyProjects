@@ -1,6 +1,5 @@
 package test.socket;
 
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -28,10 +27,10 @@ public class NioClient implements Runnable {
 
 	// Maps a SocketChannel to a list of ByteBuffer instances
 	private Map pendingData = new HashMap();
-	
+
 	// Maps a SocketChannel to a RspHandler
 	private Map rspHandlers = Collections.synchronizedMap(new HashMap());
-	
+
 	public NioClient(InetAddress hostAddress, int port) throws IOException {
 		this.hostAddress = hostAddress;
 		this.port = port;
@@ -41,10 +40,10 @@ public class NioClient implements Runnable {
 	public void send(byte[] data, RspHandler handler) throws IOException {
 		// Start a new connection
 		SocketChannel socket = this.initiateConnection();
-		
+
 		// Register the response handler
 		this.rspHandlers.put(socket, handler);
-		
+
 		// And queue the data we want written
 		synchronized (this.pendingData) {
 			List queue = (List) this.pendingData.get(socket);
@@ -143,10 +142,10 @@ public class NioClient implements Runnable {
 		// to the client
 		byte[] rspData = new byte[numRead];
 		System.arraycopy(data, 0, rspData, 0, numRead);
-		
+
 		// Look up the handler for this channel
 		RspHandler handler = (RspHandler) this.rspHandlers.get(socketChannel);
-		
+
 		// And pass the response to it
 		if (handler.handleResponse(rspData)) {
 			// The handler has seen enough, close the connection
@@ -183,10 +182,10 @@ public class NioClient implements Runnable {
 
 	private void finishConnection(SelectionKey key) throws IOException {
 		SocketChannel socketChannel = (SocketChannel) key.channel();
-	
+
 		// Finish the connection. If the connection operation failed
 		// this will raise an IOException.
-		try {  
+		try {
 			socketChannel.finishConnect();
 		} catch (IOException e) {
 			// Cancel the channel's registration with our selector
@@ -194,7 +193,7 @@ public class NioClient implements Runnable {
 			key.cancel();
 			return;
 		}
-	
+
 		// Register an interest in writing on this channel
 		key.interestOps(SelectionKey.OP_WRITE);
 	}
@@ -203,18 +202,18 @@ public class NioClient implements Runnable {
 		// Create a non-blocking socket channel
 		SocketChannel socketChannel = SocketChannel.open();
 		socketChannel.configureBlocking(false);
-	
+
 		// Kick off connection establishment
 		socketChannel.connect(new InetSocketAddress(this.hostAddress, this.port));
-	
-		// Queue a channel registration since the caller is not the 
+
+		// Queue a channel registration since the caller is not the
 		// selecting thread. As part of the registration we'll register
 		// an interest in connection events. These are raised when a channel
 		// is ready to complete connection establishment.
-		synchronized(this.pendingChanges) {
+		synchronized (this.pendingChanges) {
 			this.pendingChanges.add(new ChangeRequest(socketChannel, ChangeRequest.REGISTER, SelectionKey.OP_CONNECT));
 		}
-		
+
 		return socketChannel;
 	}
 
@@ -230,9 +229,10 @@ public class NioClient implements Runnable {
 			t.setDaemon(true);
 			t.start();
 			RspHandler handler = new RspHandler();
-/*			client.send("GET / HTTP/1.0\r\n\r\n".getBytes(), handler);
-			handler.waitForResponse();
-*/
+			/*
+			 * client.send("GET / HTTP/1.0\r\n\r\n".getBytes(), handler);
+			 * handler.waitForResponse();
+			 */
 			client.send("Hellow world from client".getBytes(), handler);
 			handler.waitForResponse();
 		} catch (Exception e) {
