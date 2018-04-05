@@ -3,7 +3,7 @@ package test.pattern.worker;
 public class _Tester {
 
 	public static void main(String[] args) {
-		  
+		    
 		// Worker ±¸µ¿
 		final Channel channel = new Channel(5);
 		channel.startWorkers();
