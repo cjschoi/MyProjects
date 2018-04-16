@@ -3,10 +3,10 @@ test1_1
 test1_1_a
 test1_2
 test1_2_a
+stash1
 
 [git 历厘家2]
 1111
-
 
 [git 历厘家1]
 1111
