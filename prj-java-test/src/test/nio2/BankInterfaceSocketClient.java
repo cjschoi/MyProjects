@@ -3,12 +3,14 @@ package test.nio2;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class BankInterfaceSocketClient {
@@ -28,21 +30,23 @@ public class BankInterfaceSocketClient {
 		this.serverName = serverName;
 		this.port = port;
 	}
-
+	public final static int READ_MESSAGE_WAIT_TIME = 30;
 	//private AsynchronousSocketChannel connectToServer(int waitTime)
 	private AsynchronousSocketChannel connectToServer()
 			throws IOException, InterruptedException, ExecutionException, TimeoutException {
 		AsynchronousSocketChannel asyncSocketChannel = AsynchronousSocketChannel.open();
 		Future<Void> connectFuture = null;
 
+		
+		
 		// Connecting to server
 		System.out.println("Connecting to server... " + serverName + ",port=" + port);
 		//connectFuture = asyncSocketChannel.connect(new InetSocketAddress("cjs-PC", this.port));
-		connectFuture = asyncSocketChannel.connect(new InetSocketAddress(InetAddress.getLocalHost().getHostName(), this.port));
+		connectFuture = asyncSocketChannel.connect(new InetSocketAddress(InetAddress.getLocalHost().getHostName(), this.port)); 
 
 		// You have two seconds to connect. This will throw exception if server
 		// is not there.
-		//connectFuture.get(waitTime, TimeUnit.SECONDS);
+		//connectFuture.get(READ_MESSAGE_WAIT_TIME, TimeUnit.SECONDS);
 		connectFuture.get();
 
 		//asyncSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 128 * MESSAGE_INPUT_SIZE);
@@ -138,6 +142,15 @@ public class BankInterfaceSocketClient {
 			}
 		}
 		return response;
+	}
+	
+	public void startClientDaemon() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				//startClient();
+			}
+		}).start();
 	}
 	
 	private void handleException(Exception e) {

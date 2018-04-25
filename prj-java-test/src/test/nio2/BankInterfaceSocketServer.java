@@ -16,6 +16,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import test.nio2.util.NamedThreadFactory;
@@ -26,7 +27,7 @@ public class BankInterfaceSocketServer implements Runnable {
 	private String name;
 	private AsynchronousServerSocketChannel asyncServerSocketChannel;
 	
-	//public final static int READ_MESSAGE_WAIT_TIME = 15;
+	public final static int READ_MESSAGE_WAIT_TIME = 15;
 	public final static int MESSAGE_INPUT_SIZE= 1024;
 	
 	public BankInterfaceSocketServer(String name) throws IOException, InterruptedException, ExecutionException {
@@ -35,7 +36,7 @@ public class BankInterfaceSocketServer implements Runnable {
 		//		Executors.newFixedThreadPool(50, new NamedThreadFactory(name + "_Group_Thread")));
 		
 		asyncChannelGroup = AsynchronousChannelGroup.withCachedThreadPool(
-				Executors.newFixedThreadPool(500), 20);
+				Executors.newFixedThreadPool(50), 20);
 	}	
 	
 	public String getName() {
@@ -127,27 +128,27 @@ public class BankInterfaceSocketServer implements Runnable {
 		try {
 			// read a message from the client, timeout after 10 seconds
 			Future<Integer> futureReadResult = asyncSocketChannel.read(messageByteBuffer);
-			//futureReadResult.get(READ_MESSAGE_WAIT_TIME, TimeUnit.SECONDS);
-			futureReadResult.get();
+			futureReadResult.get(READ_MESSAGE_WAIT_TIME, TimeUnit.SECONDS);
+			//futureReadResult.get();
 		
 			String clientMessage = new String(messageByteBuffer.array(), StandardCharsets.UTF_8.name()).trim();  
 			
-			messageByteBuffer.clear();
+			//messageByteBuffer.clear();
 			messageByteBuffer.flip();
          
 			String responseString = "echo" + "_" + clientMessage;
 			messageByteBuffer = ByteBuffer.wrap((responseString.getBytes()));
 			Future<Integer> futureWriteResult = asyncSocketChannel.write(messageByteBuffer);
-			//futureWriteResult.get(READ_MESSAGE_WAIT_TIME, TimeUnit.SECONDS);
-			futureWriteResult.get();
+			futureWriteResult.get(READ_MESSAGE_WAIT_TIME, TimeUnit.SECONDS);
+			//futureWriteResult.get();
 			
 			if (messageByteBuffer.hasRemaining()) {
 				messageByteBuffer.compact();
 			} else {
 				messageByteBuffer.clear();
 			}        
-		//} catch (InterruptedException | ExecutionException | TimeoutException | CancellationException | UnsupportedEncodingException e) {
-		} catch (InterruptedException | ExecutionException | CancellationException | UnsupportedEncodingException e) {	
+		} catch (InterruptedException | ExecutionException | TimeoutException | CancellationException | UnsupportedEncodingException e) {
+		//} catch (InterruptedException | ExecutionException | CancellationException | UnsupportedEncodingException e) {	
 			e.printStackTrace(); 
 		} finally {
 			try {
