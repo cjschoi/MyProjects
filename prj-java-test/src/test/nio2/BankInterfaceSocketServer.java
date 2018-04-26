@@ -37,7 +37,7 @@ public class BankInterfaceSocketServer implements Runnable {
 		
 		asyncChannelGroup = AsynchronousChannelGroup.withCachedThreadPool(
 				Executors.newFixedThreadPool(50), 20);
-	}	
+	}
 	
 	public String getName() {
 		return this.name;

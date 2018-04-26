@@ -10,7 +10,7 @@ public class BulkClientTester {
 
 	public static void main(String[] args) throws IOException {
 
-		int numberOfClient = 30;
+		int numberOfClient = 10;
 		int numberOfMessage = 1000;
 		
 		ArrayList<BankInterfaceSocketClient> clients = new ArrayList<BankInterfaceSocketClient>();
@@ -27,7 +27,8 @@ public class BulkClientTester {
 				try {
 					Random random = new Random();
 					String toSend = "client["+j+"] msg["+i+"] TEST_" + random.nextInt() + "_" + random.nextFloat();
-					String result = client.sendMessage(toSend);
+					//String result = client.sendMessage(toSend);
+					String result = client.retrySendMessage(toSend);
 					System.out.println(toSend + "=" + " " + result.length() + "," + result);
 				} catch (Exception e) {
 					e.printStackTrace();

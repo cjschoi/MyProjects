@@ -39,7 +39,8 @@ public class ClientCLI {
 					}
 	            } else if (command.equalsIgnoreCase("SEND")) {
 	            	String message = tokens[1];
-	            	returnMessage = client.sendMessage(message);
+	            	//returnMessage = client.sendMessage(message);
+	            	returnMessage = client.retrySendMessage(message);
 	            }
 	        	// have successful client.
 	        } else {

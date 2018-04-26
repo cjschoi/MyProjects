@@ -8,10 +8,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import test.nio2.util.RetryUtil;
 
 public class BankInterfaceSocketClient {
 
@@ -30,15 +33,17 @@ public class BankInterfaceSocketClient {
 		this.serverName = serverName;
 		this.port = port;
 	}
+	
 	public final static int READ_MESSAGE_WAIT_TIME = 30;
 	//private AsynchronousSocketChannel connectToServer(int waitTime)
+	
+	
+	
 	private AsynchronousSocketChannel connectToServer()
 			throws IOException, InterruptedException, ExecutionException, TimeoutException {
 		AsynchronousSocketChannel asyncSocketChannel = AsynchronousSocketChannel.open();
 		Future<Void> connectFuture = null;
 
-		
-		
 		// Connecting to server
 		System.out.println("Connecting to server... " + serverName + ",port=" + port);
 		//connectFuture = asyncSocketChannel.connect(new InetSocketAddress("cjs-PC", this.port));
@@ -55,6 +60,42 @@ public class BankInterfaceSocketClient {
 
 		return asyncSocketChannel;
 	}
+	
+
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||	
+//|||| retry 패턴 connenctToServer |||||||||||||||||||||||||||||||||||||||||||||||||||< Start
+	// retryConnectToServer callable
+    private Callable<AsynchronousSocketChannel> connectWork = () -> {
+    	System.out.println("callable..");
+		AsynchronousSocketChannel asyncSocketChannel = AsynchronousSocketChannel.open();
+		Future<Void> connectFuture = null;
+
+		// Connecting to server
+		System.out.println("Connecting to server... " + serverName + ",port=" + port);
+		//connectFuture = asyncSocketChannel.connect(new InetSocketAddress("cjs-PC", this.port));
+		connectFuture = asyncSocketChannel.connect(new InetSocketAddress(InetAddress.getLocalHost().getHostName(), this.port)); 
+
+		// You have two seconds to connect. This will throw exception if server
+		// is not there.
+		//connectFuture.get(READ_MESSAGE_WAIT_TIME, TimeUnit.SECONDS);
+		connectFuture.get();
+
+		//asyncSocketChannel.setOption(StandardSocketOptions.SO_RCVBUF, 128 * MESSAGE_INPUT_SIZE);
+		//asyncSocketChannel.setOption(StandardSocketOptions.SO_SNDBUF, 128 * MESSAGE_INPUT_SIZE);
+		//asyncSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
+
+		return asyncSocketChannel; 
+    };
+	
+	/* retry패턴으로 connect */
+	private AsynchronousSocketChannel retryConnectToServer() 
+			throws Exception {
+		AsynchronousSocketChannel asyncSocketChannel = RetryUtil.runWithRetry(connectWork);
+		return asyncSocketChannel;
+	}
+//|||| retry 패턴 connenctToServer |||||||||||||||||||||||||||||||||||||||||||||||||||> End	
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||	
+	
 	
 	/*public void connectSendMessage(String request)
 			throws IOException, InterruptedException, ExecutionException, TimeoutException {
@@ -108,7 +149,48 @@ public class BankInterfaceSocketClient {
 		});
 	}*/
 	
-
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||	
+//|||| retry 패턴 sendMessage |||||||||||||||||||||||||||||||||||||||||||||||||||< Start
+	public String retrySendMessage(String request) {
+		System.out.println(">> sendMessage(request=" + request + ")");
+		String response = null;
+		AsynchronousSocketChannel asyncSocketChannel = null;
+		try {
+			//asyncSocketChannel = connectToServer(WAIT_TIME);
+			asyncSocketChannel = retryConnectToServer();
+			ByteBuffer messageByteBuffer = ByteBuffer.wrap(request.getBytes());
+			Future<Integer> futureWriteResult = asyncSocketChannel.write(messageByteBuffer);
+			futureWriteResult.get();
+        
+			//Now wait for return message.
+			ByteBuffer returnMessage = ByteBuffer.allocate(MESSAGE_INPUT_SIZE);
+			Future<Integer> futureReadResult = asyncSocketChannel.read(returnMessage);
+     		futureReadResult.get();
+			response = new String(returnMessage.array(), StandardCharsets.UTF_8.name());
+			
+			System.out.println("received response=" + response);
+			
+			messageByteBuffer.clear();
+		} catch (InterruptedException | ExecutionException | IOException e ) {
+			handleException(e);
+		} catch (Exception e) {
+			handleException(e);
+		} finally {
+			if (asyncSocketChannel.isOpen()) {
+				try {
+					asyncSocketChannel.close();
+				} catch (IOException e) {
+					// Not really anything we can do here.
+					e.printStackTrace();
+				}
+			}
+		}
+		return response;
+	}	
+//|||| retry 패턴 sendMessage |||||||||||||||||||||||||||||||||||||||||||||||||||> End	
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+	
+	
 	public String sendMessage(String request) {
 		System.out.println(">> sendMessage(request=" + request + ")");
 		String response = null;
